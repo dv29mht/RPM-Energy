@@ -66,21 +66,23 @@ const BLANK_PLAN = {
 function loadNutritionPlans() {
   try {
     const saved = localStorage.getItem(LS_NUTRITION_KEY);
-    return saved
-      ? JSON.parse(saved)
-      : dummyNutritionPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
-  } catch {
-    return dummyNutritionPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyNutritionPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
 }
 
 function loadClients() {
   try {
     const saved = localStorage.getItem(LS_CLIENTS_KEY);
-    return saved ? JSON.parse(saved) : dummyClients;
-  } catch {
-    return dummyClients;
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyClients;
 }
 
 function persistNutritionPlans(plans) {

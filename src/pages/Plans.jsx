@@ -36,21 +36,23 @@ const LS_CLIENTS_KEY = 'rpm_clients';
 function loadPlans() {
   try {
     const saved = localStorage.getItem(LS_PLANS_KEY);
-    return saved
-      ? JSON.parse(saved)
-      : dummyPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
-  } catch {
-    return dummyPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyPlans.map(p => ({ ...p, assigned_to: [...p.assigned_to] }));
 }
 
 function loadClients() {
   try {
     const saved = localStorage.getItem(LS_CLIENTS_KEY);
-    return saved ? JSON.parse(saved) : dummyClients;
-  } catch {
-    return dummyClients;
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyClients;
 }
 
 function persistPlans(plans) {

@@ -62,10 +62,12 @@ const LS_KEY = 'rpm_clients';
 function loadClients() {
   try {
     const saved = localStorage.getItem(LS_KEY);
-    return saved ? JSON.parse(saved) : dummyClients;
-  } catch {
-    return dummyClients;
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyClients;
 }
 
 // ---------------------------------------------------------------------------

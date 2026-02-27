@@ -169,19 +169,23 @@ function buildSessionMap(sessions) {
 function loadClients() {
   try {
     const saved = localStorage.getItem(LS_CLIENTS_KEY);
-    return saved ? JSON.parse(saved) : dummyClients;
-  } catch {
-    return dummyClients;
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyClients;
 }
 
 function loadSessions() {
   try {
     const saved = localStorage.getItem(LS_SESSIONS_KEY);
-    return saved ? JSON.parse(saved) : [...dummySessions];
-  } catch {
-    return [...dummySessions];
-  }
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [...dummySessions];
 }
 
 function persistSessions(sessions) {
