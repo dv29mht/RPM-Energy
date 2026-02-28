@@ -678,8 +678,8 @@ function WeekView({ sessions, allClients, viewDate, onNavigate, onBook, onSessio
       </div>
 
       {/* 7-day column grid */}
-      <div className="overflow-x-auto -mx-1 pb-2">
-        <div className="grid grid-cols-7 gap-1.5 min-w-[560px] px-1">
+      <div className="overflow-x-auto -mx-1 pb-4">
+        <div className="grid grid-cols-7 gap-1.5 min-w-[800px] px-1">
           {weekDays.map(dateStr => {
             const d       = new Date(dateStr + 'T12:00:00Z');
             const dayName = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });

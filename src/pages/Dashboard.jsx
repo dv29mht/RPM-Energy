@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
   Users, UtensilsCrossed, Activity, Star, MessageCircle,
-  Video, MapPin, ChevronDown, Trophy, CheckCircle,
+  Video, MapPin, Trophy, CheckCircle,
   AlertTriangle, XCircle,
 } from 'lucide-react';
 import {
@@ -34,6 +34,8 @@ import { getThisWeekStats, getEngagementChartData,
 // ---------------------------------------------------------------------------
 
 const TODAY = '2026-02-24';
+
+const LS_CLIENTS_KEY = 'rpm_clients';
 
 // Categorical palette — distinct colors for readable data visualization
 const CLIENT_COLOURS = {
@@ -208,7 +210,7 @@ function StarClientCard({ starClient }) {
   const canvasRef = useRef(null);
   const [hasPopped, setHasPopped] = useState(false);
 
-  function handleMouseEnter() {
+  function handleClick() {
     if (hasPopped || !canvasRef.current) return;
     const myConfetti = confetti.create(canvasRef.current, { resize: true, useWorker: true });
     myConfetti({ particleCount: 40, spread: 60, origin: { x: 0.5, y: 0.6 } });
@@ -218,7 +220,7 @@ function StarClientCard({ starClient }) {
   return (
     <Link
       to={`/clients/${client.client_id}`}
-      onMouseEnter={handleMouseEnter}
+      onClick={handleClick}
       className="relative overflow-hidden bg-white rounded-xl border border-zinc-200 p-5
                  hover:shadow-md hover:border-brand-400 hover:bg-brand-50
                  cursor-pointer transition-all block no-underline"
@@ -454,72 +456,34 @@ function WeightTrendChart({ data }) {
 // 6. Classification Panel (Flow B4 / Section 3.1)
 // ---------------------------------------------------------------------------
 
-function OverrideDropdown({ current, clientId, onSelect }) {
-  const [open, setOpen] = useState(false);
-  const cfg = TIER_CONFIG[current];
-
-  return (
-    <div className="relative" onClick={e => e.stopPropagation()}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`inline-flex items-center gap-1 text-[10px] font-semibold
-                    px-2 py-0.5 rounded-full cursor-pointer select-none ${cfg.badgeCls}`}
-      >
-        {cfg.label}
-        <ChevronDown className="w-2.5 h-2.5" />
-      </button>
-
-      {open && (
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200
-                          rounded-lg shadow-lg z-50 py-1 min-w-[130px]">
-            {ALL_TIERS.map(tier => {
-              const tc = TIER_CONFIG[tier];
-              return (
-                <button
-                  key={tier}
-                  onClick={() => { onSelect(clientId, tier); setOpen(false); }}
-                  className="w-full text-left px-3 py-1.5 text-xs font-medium
-                             hover:bg-slate-50 transition-colors text-slate-700"
-                >
-                  <span className={`inline-block w-2 h-2 rounded-full mr-2`}
-                        style={{ backgroundColor: tc.dotColour }} />
-                  {tc.label}
-                  {tier === current && <span className="ml-1 text-slate-300">✓</span>}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function ClientRow({ client, tierKey, onOverride }) {
+function ClientRow({ client, tierKey }) {
   const cfg = TIER_CONFIG[tierKey];
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${cfg.rowHoverCls}`}>
+    <div
+      draggable
+      onDragStart={e => {
+        e.dataTransfer.setData('text/plain', client.client_id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      className={`flex items-center gap-3 px-4 py-2.5 transition-colors cursor-grab
+                  active:cursor-grabbing ${cfg.rowHoverCls}`}
+    >
       {/* Avatar */}
       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                       bg-zinc-100 text-zinc-800 border border-zinc-200 text-[11px] font-bold">
         {initials(client.name)}
       </div>
 
-      {/* Name + goal — tight, flex-1 */}
+      {/* Name + goal */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{client.name}</p>
-        </div>
+        <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{client.name}</p>
         <p className="text-xs text-slate-400 truncate leading-tight">{client.goal}</p>
       </div>
 
-      {/* Score — MO badge left, fixed-width score right for tabular alignment */}
+      {/* Score + MO indicator */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        {client.classification_override && tierKey !== client.classification && (
+        {client.classification_override && (
           <span className="text-[9px] font-medium bg-slate-100 text-slate-500 border border-slate-200
                            px-1.5 py-0.5 rounded">
             MO
@@ -529,9 +493,6 @@ function ClientRow({ client, tierKey, onOverride }) {
           {client.score}
         </span>
       </div>
-
-      {/* Tier override badge */}
-      <OverrideDropdown current={tierKey} clientId={client.client_id} onSelect={onOverride} />
 
       {/* WhatsApp nudge */}
       <a
@@ -551,15 +512,41 @@ function ClientRow({ client, tierKey, onOverride }) {
   );
 }
 
-function TierSection({ tierKey, clients, onOverride }) {
-  const cfg  = TIER_CONFIG[tierKey];
-  const Icon = cfg.icon;
-  if (!clients.length) return null;
+function TierSection({ tierKey, clients, onDrop }) {
+  const cfg      = TIER_CONFIG[tierKey];
+  const Icon     = cfg.icon;
+  const [dragOver, setDragOver] = useState(false);
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOver(true);
+  }
+  function handleDragLeave(e) {
+    // Only clear when leaving the section entirely (not a child)
+    if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false);
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    const clientId = e.dataTransfer.getData('text/plain');
+    if (clientId) onDrop(clientId, tierKey);
+  }
+
+  if (!clients.length && !dragOver) return null;
 
   return (
-    <div className={`rounded-xl border ${cfg.borderCls}`}>
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`rounded-xl border transition-all duration-150
+                  ${dragOver
+                    ? `${cfg.borderCls} ring-2 ring-brand-400 bg-brand-50/30`
+                    : cfg.borderCls}`}
+    >
       {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-3 bg-white border-b ${cfg.borderCls}`}>
+      <div className={`flex items-center justify-between px-4 py-3 bg-white rounded-t-xl border-b ${cfg.borderCls}`}>
         <div className="flex items-center gap-2.5">
           <Icon className={`w-4 h-4 ${cfg.headerCls}`} />
           <span className={`text-sm font-bold ${cfg.headerCls}`}>{cfg.label}</span>
@@ -571,25 +558,43 @@ function TierSection({ tierKey, clients, onOverride }) {
         <p className="text-xs text-slate-400 italic hidden lg:block">{cfg.suggestion}</p>
       </div>
 
-      {/* Rows */}
-      <div className="bg-white divide-y divide-slate-50">
-        {clients.map(c => (
-          <ClientRow key={c.client_id} client={c} tierKey={tierKey} onOverride={onOverride} />
-        ))}
+      {/* Rows — or drop-here hint when empty but hovered */}
+      <div className="bg-white divide-y divide-slate-50 rounded-b-xl">
+        {clients.length === 0 && dragOver ? (
+          <div className="px-4 py-4 text-xs text-center text-brand-400 font-medium">
+            Drop here to move to {cfg.label}
+          </div>
+        ) : (
+          clients.map(c => (
+            <ClientRow key={c.client_id} client={c} tierKey={tierKey} />
+          ))
+        )}
       </div>
     </div>
   );
 }
 
 function ClassificationPanel({ initialGroups }) {
-  // Local override map: clientId → tier key. Persists for this session only (no backend in V1).
   const [overrides, setOverrides] = useState({});
 
-  function handleOverride(clientId, newTier) {
+  function handleDrop(clientId, newTier) {
+    // Update local state immediately
     setOverrides(prev => ({ ...prev, [clientId]: newTier }));
+    // Persist classification change to rpm_clients in localStorage
+    try {
+      const raw = localStorage.getItem(LS_CLIENTS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.map(c =>
+            c.client_id === clientId ? { ...c, classification: newTier } : c
+          );
+          localStorage.setItem(LS_CLIENTS_KEY, JSON.stringify(updated));
+        }
+      }
+    } catch {}
   }
 
-  // Rebuild grouped lists applying any local overrides
   const groups = useMemo(() => {
     const allClients = ALL_TIERS.flatMap(t => initialGroups[t] ?? []);
     const result     = { serious: [], active: [], casual: [], inactive: [] };
@@ -608,7 +613,7 @@ function ClassificationPanel({ initialGroups }) {
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-slate-800">Client Classifications</h3>
         <p className="text-xs text-slate-400 mt-0.5">
-          Auto-calculated weekly · Tap the tier badge on any client to override
+          Auto-calculated weekly · Drag a client into a different tier to reclassify
         </p>
       </div>
       <div className="space-y-3">
@@ -617,7 +622,7 @@ function ClassificationPanel({ initialGroups }) {
             key={tier}
             tierKey={tier}
             clients={groups[tier]}
-            onOverride={handleOverride}
+            onDrop={handleDrop}
           />
         ))}
       </div>

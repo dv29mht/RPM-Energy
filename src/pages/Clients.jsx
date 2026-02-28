@@ -306,7 +306,7 @@ export default function Clients() {
 
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(c => c.name.toLowerCase().includes(q));
+      list = list.filter(c => (c.name ?? '').toLowerCase().includes(q));
     }
     if (filter !== 'All') {
       list = list.filter(c => c.classification === filter.toLowerCase());

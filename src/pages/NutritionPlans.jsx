@@ -587,17 +587,24 @@ export default function NutritionPlans() {
 
   // ── Protected delete (referential integrity) ─────────────────────────────
 
-  function handleDelete(nutrition_plan_id) {
+  function handleDelete(planId) {
+    // Strict referential-integrity check against rpm_clients in localStorage
+    let isAssigned = false;
     try {
-      const raw     = localStorage.getItem(LS_CLIENTS_KEY);
-      const allC    = raw ? JSON.parse(raw) : dummyClients;
-      const blocked = allC.some(c => c.assigned_nutrition_id === nutrition_plan_id);
-      if (blocked) {
-        alert('Cannot delete this plan because it is currently assigned to an active client. Clear their nutrition plan first.');
-        return;
+      const raw        = localStorage.getItem(LS_CLIENTS_KEY);
+      const allClients = raw ? JSON.parse(raw) : dummyClients;
+      if (Array.isArray(allClients)) {
+        isAssigned = allClients.some(c => c.assigned_nutrition_id === planId);
       }
-    } catch { /* if read fails, proceed */ }
-    save(plans.filter(p => p.nutrition_plan_id !== nutrition_plan_id));
+    } catch {
+      // If localStorage read throws, fall back to in-memory clients state
+      isAssigned = clients.some(c => c.assigned_nutrition_id === planId);
+    }
+    if (isAssigned) {
+      alert('Cannot delete this plan — it is currently assigned to one or more clients. Remove the assignment first.');
+      return;
+    }
+    save(plans.filter(p => p.nutrition_plan_id !== planId));
   }
 
   // ── Assign handlers ──────────────────────────────────────────────────────
