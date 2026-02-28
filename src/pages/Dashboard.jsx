@@ -637,13 +637,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <div className="max-w-screen-xl mx-auto px-6 py-6 pb-24 space-y-6">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 pb-24 space-y-6">
 
         {/* Today Strip */}
         <TodayStrip sessions={dummySessions} clients={dummyClients} />
 
         {/* Weekly Snapshot Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={Users}
             iconBg="bg-slate-100"
@@ -672,7 +672,7 @@ export default function Dashboard() {
         </div>
 
         {/* Charts row */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <EngagementBarChart data={engagementData} />
           <WeightTrendChart   data={weightData} />
         </div>

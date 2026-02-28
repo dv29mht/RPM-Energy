@@ -25,6 +25,8 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Menu,
+  X,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -70,7 +72,7 @@ function initials(fullName = '') {
 // NavItem — renders differently when sidebar is collapsed (icon-only)
 // ---------------------------------------------------------------------------
 
-function NavItem({ item, isCollapsed }) {
+function NavItem({ item, isCollapsed, onNavClick }) {
   const { label, route, icon: Icon, locked } = item;
 
   if (locked) {
@@ -98,6 +100,7 @@ function NavItem({ item, isCollapsed }) {
   return (
     <NavLink
       to={route}
+      onClick={onNavClick}
       title={isCollapsed ? label : undefined}
       className={({ isActive }) =>
         [
@@ -120,8 +123,9 @@ function NavItem({ item, isCollapsed }) {
 // ---------------------------------------------------------------------------
 
 export default function Layout() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [trainer,     setTrainer]     = useState(loadTrainerProfile);
+  const [isCollapsed,     setIsCollapsed]     = useState(false);
+  const [trainer,         setTrainer]         = useState(loadTrainerProfile);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     function onTrainerUpdated() { setTrainer(loadTrainerProfile()); }
@@ -129,13 +133,56 @@ export default function Layout() {
     return () => window.removeEventListener('trainerUpdated', onTrainerUpdated);
   }, []);
 
+  function closeMobileMenu() { setIsMobileMenuOpen(false); }
+
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50">
 
-      {/* ── Sidebar ─────────────────────────────────────────────────── */}
-      <aside className={`flex-shrink-0 flex flex-col bg-zinc-950 border-r border-zinc-900
-                         transition-all duration-300 overflow-hidden
+      {/* ── Mobile top bar (visible only on < md) ────────────────────── */}
+      <div className="fixed top-0 inset-x-0 z-40 flex md:hidden items-center justify-between
+                      px-4 h-14 bg-white border-b border-zinc-200 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-white" fill="currentColor" />
+          </div>
+          <span className="text-sm font-bold text-zinc-900 tracking-wide">RPM.ENERGY</span>
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100
+                     transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* ── Mobile backdrop (dims content behind open drawer) ─────────── */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Sidebar (desktop: relative in flex flow; mobile: fixed drawer) */}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex-shrink-0 flex flex-col
+                         bg-zinc-950 border-r border-zinc-900 overflow-hidden
+                         md:relative md:z-auto md:translate-x-0
+                         transition-all duration-300
+                         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                          ${isCollapsed ? 'w-16' : 'w-60'}`}>
+
+        {/* X close button — mobile only */}
+        <button
+          onClick={closeMobileMenu}
+          className="absolute top-3 right-3 p-1.5 rounded-lg text-zinc-400
+                     hover:text-white hover:bg-zinc-800 transition-colors md:hidden"
+          aria-label="Close menu"
+        >
+          <X className="w-4 h-4" />
+        </button>
 
         {/* Brand */}
         <div className={`flex items-center border-b border-zinc-900 py-5 flex-shrink-0
@@ -154,13 +201,22 @@ export default function Layout() {
         {/* Primary nav */}
         <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-0.5">
           {NAV_ITEMS.map(item => (
-            <NavItem key={item.route} item={item} isCollapsed={isCollapsed} />
+            <NavItem
+              key={item.route}
+              item={item}
+              isCollapsed={isCollapsed}
+              onNavClick={closeMobileMenu}
+            />
           ))}
         </nav>
 
         {/* Settings + trainer strip + collapse toggle */}
         <div className="px-2 py-3 border-t border-zinc-900 space-y-0.5">
-          <NavItem item={SETTINGS_ITEM} isCollapsed={isCollapsed} />
+          <NavItem
+            item={SETTINGS_ITEM}
+            isCollapsed={isCollapsed}
+            onNavClick={closeMobileMenu}
+          />
 
           {/* Trainer avatar — hidden when collapsed */}
           {!isCollapsed && (
@@ -175,11 +231,11 @@ export default function Layout() {
             </div>
           )}
 
-          {/* Collapse toggle — brand-tinted icon, no text label */}
+          {/* Collapse toggle — desktop only (hidden on mobile) */}
           <button
             onClick={() => setIsCollapsed(c => !c)}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="w-full flex items-center justify-center rounded-lg py-2 mt-1
+            className="w-full hidden md:flex items-center justify-center rounded-lg py-2 mt-1
                        text-brand-500 hover:text-brand-400 hover:bg-zinc-900
                        transition-colors duration-150"
           >
@@ -191,8 +247,8 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* ── Main content — expands smoothly as sidebar shrinks ──────── */}
-      <main className="flex-1 overflow-y-auto transition-all duration-300">
+      {/* ── Main content ─────────────────────────────────────────────── */}
+      <main className="flex-1 overflow-y-auto transition-all duration-300 pt-14 md:pt-0">
         <Outlet />
       </main>
     </div>
