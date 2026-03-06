@@ -1,27 +1,18 @@
 /**
- * RPM.ENERGY — Main Application Layout
+ * progrx — Main Application Layout
  * Source of truth: spec Section 7.6 (Navigation Structure)
- *
- * Navigation items:
- *   Dashboard     /dashboard   Active
- *   My Clients    /clients     Active
- *   Schedule      /schedule    Active
- *   Workout Plans /plans       Active
- *   Payments      /payments    Locked — Coming Soon badge
- *   Settings      /settings    Active
  */
 
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Users,
   Calendar,
   Dumbbell,
   Apple,
-  CreditCard,
   Settings,
-  Lock,
   Zap,
   ChevronLeft,
   ChevronRight,
@@ -29,20 +20,20 @@ import {
   X,
 } from 'lucide-react';
 
+
 // ---------------------------------------------------------------------------
-// Navigation definition — mirrors Section 7.6 exactly
+// Navigation definition
 // ---------------------------------------------------------------------------
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',     route: '/dashboard', icon: LayoutDashboard, locked: false },
-  { label: 'My Clients',    route: '/clients',   icon: Users,           locked: false },
-  { label: 'Schedule',      route: '/schedule',  icon: Calendar,        locked: false },
-  { label: 'Workout Plans',   route: '/plans',     icon: Dumbbell, locked: false },
-  { label: 'Nutrition Plans', route: '/nutrition', icon: Apple,    locked: false },
-  { label: 'Payments',        route: '/payments',  icon: CreditCard, locked: true  },
+  { labelKey: 'nav.dashboard',      route: '/dashboard', icon: LayoutDashboard },
+  { labelKey: 'nav.clients',        route: '/clients',   icon: Users           },
+  { labelKey: 'nav.schedule',       route: '/schedule',  icon: Calendar        },
+  { labelKey: 'nav.workoutPlans',   route: '/plans',     icon: Dumbbell        },
+  { labelKey: 'nav.nutritionPlans', route: '/nutrition', icon: Apple           },
 ];
 
-const SETTINGS_ITEM = { label: 'Settings', route: '/settings', icon: Settings, locked: false };
+const SETTINGS_ITEM = { labelKey: 'nav.settings', route: '/settings', icon: Settings };
 
 // ---------------------------------------------------------------------------
 // Trainer profile helpers
@@ -53,49 +44,24 @@ function loadTrainerProfile() {
     const raw = localStorage.getItem('rpm_trainer_settings');
     if (raw) {
       const data = JSON.parse(raw);
-      return { fullName: data.name ?? 'Vikram Sood', email: data.email ?? 'vikram@rpm.energy' };
+      return { fullName: data.name ?? 'Vikram Sood', email: data.email ?? 'vikram@progrx.in' };
     }
   } catch { /* ignore */ }
-  return { fullName: 'Vikram Sood', email: 'vikram@rpm.energy' };
+  return { fullName: 'Vikram Sood', email: 'vikram@progrx.in' };
 }
 
 function initials(fullName = '') {
-  return fullName
-    .split(' ')
-    .map(w => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  return fullName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
 // ---------------------------------------------------------------------------
-// NavItem — renders differently when sidebar is collapsed (icon-only)
+// NavItem
 // ---------------------------------------------------------------------------
 
 function NavItem({ item, isCollapsed, onNavClick }) {
-  const { label, route, icon: Icon, locked } = item;
-
-  if (locked) {
-    return (
-      <div
-        title={isCollapsed ? label : undefined}
-        className={`flex items-center rounded-lg text-zinc-600 cursor-not-allowed select-none py-2.5
-                    ${isCollapsed ? 'justify-center px-1' : 'gap-3 px-3'}`}
-      >
-        <Icon className="w-5 h-5 flex-shrink-0" />
-        {!isCollapsed && (
-          <>
-            <span className="flex-1 text-sm font-medium">{label}</span>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]
-                             font-semibold bg-zinc-800 text-zinc-500 leading-tight">
-              <Lock className="w-2.5 h-2.5" />
-              Soon
-            </span>
-          </>
-        )}
-      </div>
-    );
-  }
+  const { t } = useTranslation();
+  const { labelKey, route, icon: Icon } = item;
+  const label = t(labelKey);
 
   return (
     <NavLink
@@ -113,7 +79,7 @@ function NavItem({ item, isCollapsed, onNavClick }) {
       }
     >
       <Icon className="w-5 h-5 flex-shrink-0" />
-      {!isCollapsed && <span>{label}</span>}
+      {!isCollapsed && <span className="flex-1">{label}</span>}
     </NavLink>
   );
 }
@@ -123,8 +89,8 @@ function NavItem({ item, isCollapsed, onNavClick }) {
 // ---------------------------------------------------------------------------
 
 export default function Layout() {
-  const [isCollapsed,     setIsCollapsed]     = useState(false);
-  const [trainer,         setTrainer]         = useState(loadTrainerProfile);
+  const [isCollapsed,      setIsCollapsed]      = useState(false);
+  const [trainer,          setTrainer]          = useState(loadTrainerProfile);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -138,26 +104,28 @@ export default function Layout() {
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50">
 
-      {/* ── Mobile top bar (visible only on < md) ────────────────────── */}
+      {/* ── Mobile top bar ─────────────────────────────────────────── */}
       <div className="fixed top-0 inset-x-0 z-40 flex md:hidden items-center justify-between
                       px-4 h-14 bg-white border-b border-zinc-200 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" fill="currentColor" />
           </div>
-          <span className="text-sm font-bold text-zinc-900 tracking-wide">RPM.ENERGY</span>
+          <span className="text-sm font-bold text-zinc-900 tracking-wide">PROGRX</span>
         </div>
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100
-                     transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100
+                       transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* ── Mobile backdrop (dims content behind open drawer) ─────────── */}
+      {/* ── Mobile backdrop ────────────────────────────────────────── */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -166,7 +134,7 @@ export default function Layout() {
         />
       )}
 
-      {/* ── Sidebar (desktop: relative in flex flow; mobile: fixed drawer) */}
+      {/* ── Sidebar ───────────────────────────────────────────────── */}
       <aside className={`fixed inset-y-0 left-0 z-50 flex-shrink-0 flex flex-col
                          bg-zinc-950 border-r border-zinc-900 overflow-hidden
                          md:relative md:z-auto md:translate-x-0
@@ -174,7 +142,7 @@ export default function Layout() {
                          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                          ${isCollapsed ? 'w-16' : 'w-60'}`}>
 
-        {/* X close button — mobile only */}
+        {/* X close — mobile only */}
         <button
           onClick={closeMobileMenu}
           className="absolute top-3 right-3 p-1.5 rounded-lg text-zinc-400
@@ -192,7 +160,7 @@ export default function Layout() {
           </div>
           {!isCollapsed && (
             <div className="leading-tight overflow-hidden">
-              <p className="text-sm font-bold text-white tracking-wide">RPM.ENERGY</p>
+              <p className="text-sm font-bold text-white tracking-wide">PROGRX</p>
               <p className="text-[10px] text-zinc-500 font-medium">Trainer Console</p>
             </div>
           )}
@@ -218,7 +186,6 @@ export default function Layout() {
             onNavClick={closeMobileMenu}
           />
 
-          {/* Trainer avatar — hidden when collapsed */}
           {!isCollapsed && (
             <div className="flex items-center gap-3 px-3 py-2 mt-1">
               <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0">
@@ -231,7 +198,6 @@ export default function Layout() {
             </div>
           )}
 
-          {/* Collapse toggle — desktop only (hidden on mobile) */}
           <button
             onClick={() => setIsCollapsed(c => !c)}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -247,7 +213,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* ── Main content ─────────────────────────────────────────────── */}
+      {/* ── Main content ──────────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto transition-all duration-300 pt-14 md:pt-0">
         <Outlet />
       </main>

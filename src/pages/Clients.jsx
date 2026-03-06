@@ -12,9 +12,9 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, X, ChevronRight, Trophy, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Search, Plus, X, ChevronRight, Trophy, CheckCircle, AlertTriangle, XCircle, Apple } from 'lucide-react';
 
-import { dummyClients, calculateEngagementScore, dummyLogs } from '../data/dummyData.js';
+import { dummyClients, calculateEngagementScore, dummyLogs, dummyNutritionPlans } from '../data/dummyData.js';
 import { getLastActiveDate, getCurrentWeight }                from '../data/clientProfileStats.js';
 
 // ---------------------------------------------------------------------------
@@ -57,7 +57,8 @@ function fmtDate(isoStr) {
 // LocalStorage helpers
 // ---------------------------------------------------------------------------
 
-const LS_KEY = 'rpm_clients';
+const LS_KEY           = 'rpm_clients';
+const LS_NUTRITION_KEY = 'rpm_nutrition_plans';
 
 function loadClients() {
   try {
@@ -68,6 +69,17 @@ function loadClients() {
     }
   } catch {}
   return dummyClients;
+}
+
+function loadNutritionPlans() {
+  try {
+    const saved = localStorage.getItem(LS_NUTRITION_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return dummyNutritionPlans;
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +227,7 @@ function AddClientModal({ open, onClose, onSuccess }) {
 // Client Card
 // ---------------------------------------------------------------------------
 
-function ClientCard({ client }) {
+function ClientCard({ client, planName }) {
   const cfg = TIER_CFG[client.classification];
   const weight  = getCurrentWeight(client.client_id);
   const lastAct = getLastActiveDate(client.client_id);
@@ -237,7 +249,15 @@ function ClientCard({ client }) {
       </div>
 
       <p className="font-bold text-slate-800 text-base leading-tight">{client.name}</p>
-      <p className="text-xs text-slate-400 mt-0.5 mb-3 truncate">{client.goal}</p>
+      <p className="text-xs text-slate-400 mt-0.5 truncate">{client.goal}</p>
+
+      {planName && (
+        <div className="flex items-center gap-1 mt-1.5 mb-2">
+          <Apple className="w-3 h-3 text-brand-500 flex-shrink-0" />
+          <span className="text-[11px] font-semibold text-brand-600 truncate">{planName}</span>
+        </div>
+      )}
+      {!planName && <div className="mb-3" />}
 
       <div className="flex items-center gap-4 text-xs border-t border-slate-50 pt-3">
         <div>
@@ -273,6 +293,11 @@ export default function Clients() {
   const [clientsList, setClientsList] = useState(loadClients);
   const [search,    setSearch]    = useState('');
   const [filter,    setFilter]    = useState('All');
+
+  const plansMap = useMemo(() => {
+    const plans = loadNutritionPlans();
+    return Object.fromEntries(plans.map(p => [p.nutrition_plan_id, p.name]));
+  }, []);
   const [sort,      setSort]      = useState('name');
   const [addOpen,   setAddOpen]   = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -379,7 +404,13 @@ export default function Clients() {
         {visible.length === 0
           ? <p className="text-center py-16 text-slate-400 text-sm">No clients match.</p>
           : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {visible.map(c => <ClientCard key={c.client_id} client={c} />)}
+              {visible.map(c => (
+                <ClientCard
+                  key={c.client_id}
+                  client={c}
+                  planName={c.assigned_nutrition_id ? plansMap[c.assigned_nutrition_id] : null}
+                />
+              ))}
             </div>
         }
       </div>

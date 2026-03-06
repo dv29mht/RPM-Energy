@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "clients": "मेरे क्लाइंट्स",
+    "schedule": "शेड्यूल",
+    "workoutPlans": "वर्कआउट प्लान्स",
+    "nutritionPlans": "न्यूट्रिशन प्लान्स",
+    "notifications": "नोटिफिकेशन्स",
+    "settings": "सेटिंग्स"
+  },
+  "settings": {
+    "pageTitle": "ट्रेनर सेटिंग्स",
+    "pageSubtitle": "अपनी प्रोफ़ाइल और डिफ़ॉल्ट कोचिंग प्राथमिकताएँ प्रबंधित करें।",
+    "saveButton": "बदलाव सहेजें",
+    "savedLabel": "सहेजा गया",
+    "profile": {
+      "title": "ट्रेनर प्रोफ़ाइल",
+      "description": "आपका नाम और संपर्क विवरण।",
+      "fullName": "पूरा नाम",
+      "email": "ईमेल पता",
+      "gymName": "वर्कस्पेस / जिम का नाम",
+      "fullNamePlaceholder": "जैसे विक्रम सूद",
+      "emailPlaceholder": "you@example.com",
+      "gymNamePlaceholder": "जैसे आयरन टेम्पल जिम, मुंबई"
+    },
+    "coachingMode": {
+      "title": "डिफ़ॉल्ट कोचिंग मोड",
+      "description": "नए सत्र बुक करते समय डिफ़ॉल्ट सत्र प्रकार सेट करता है।",
+      "online": {
+        "label": "केवल ऑनलाइन",
+        "description": "सभी सत्र वीडियो कॉल के माध्यम से दूर से आयोजित होते हैं।"
+      },
+      "in_person": {
+        "label": "इन-पर्सन",
+        "description": "सभी सत्र जिम या क्लाइंट के स्थान पर।"
+      },
+      "hybrid": {
+        "label": "हाइब्रिड",
+        "description": "क्लाइंट की ज़रूरतों के आधार पर ऑनलाइन और इन-पर्सन का मिश्रण।"
+      }
+    },
+    "language": {
+      "title": "Language / भाषा",
+      "description": "ऐप की प्रदर्शन भाषा बदलें।"
+    }
+  },
+  "dashboard": {
+    "todaysSessions": "आज के सत्र",
+    "noSessions": "आज कोई सत्र निर्धारित नहीं है",
+    "online": "ऑनलाइन",
+    "inPerson": "इन-पर्सन",
+    "totalClients": "कुल क्लाइंट्स",
+    "onYourRoster": "आपकी सूची में",
+    "avgMealsLogged": "औसत भोजन लॉग",
+    "perClientThisWeek": "इस सप्ताह प्रति क्लाइंट",
+    "avgCheckIns": "औसत चेक-इन",
+    "workoutSessionsThisWeek": "इस सप्ताह वर्कआउट सत्र",
+    "starClient": "सप्ताह का स्टार क्लाइंट",
+    "engagementScore": "एंगेजमेंट स्कोर",
+    "clientEngagement": "क्लाइंट एंगेजमेंट",
+    "logEntriesHint": "प्रति क्लाइंट लॉग प्रविष्टियाँ — तुलना के लिए पिल्स दबाएं",
+    "weekOf": "सप्ताह",
+    "logs": "लॉग",
+    "weightTrends": "वज़न रुझान",
+    "weightTrendHint": "8 सप्ताह का इतिहास — दिखाने/छुपाने के लिए पिल दबाएं",
+    "clientClassifications": "क्लाइंट वर्गीकरण",
+    "classificationHint": "साप्ताहिक स्वतः-गणना · किसी क्लाइंट को अलग टीयर में खींचें",
+    "dropHere": "{{tier}} में ले जाने के लिए यहाँ छोड़ें",
+    "nudge": "नज",
+    "tiers": {
+      "serious": {
+        "label": "सीरियस",
+        "countLabel": "सप्ताह में 5+ बार लॉगिंग",
+        "suggestion": "उनका जश्न मनाएं — वे आपका सबसे अच्छा प्रचार हैं।"
+      },
+      "active": {
+        "label": "एक्टिव",
+        "countLabel": "सप्ताह में 3–4 बार लॉगिंग",
+        "suggestion": "गति बनाए रखें। इस सप्ताह हल्का चेक-इन करें।"
+      },
+      "casual": {
+        "label": "कैजुअल",
+        "countLabel": "सप्ताह में 1–2 बार लॉगिंग",
+        "suggestion": "एक नज भेजें। पूछें कि क्या शेड्यूल बदल गया।"
+      },
+      "inactive": {
+        "label": "इनएक्टिव",
+        "countLabel": "इस सप्ताह कोई लॉग नहीं",
+        "suggestion": "प्राथमिकता फॉलो-अप। चर्न का जोखिम।"
+      }
+    }
+  },
+  "schedule": {
+    "legend": "लेजेंड",
+    "inPerson": "इन-पर्सन",
+    "online": "ऑनलाइन",
+    "clickToJump": "किसी भी दिन पर क्लिक करके उस सप्ताह पर जाएं"
+  },
+  "notifications": {
+    "title": "नोटिफिकेशन्स",
+    "typeMealUpload": "भोजन अपलोड",
+    "typeWeightCheckin": "वज़न चेक-इन",
+    "typeWorkoutLog": "वर्कआउट लॉग",
+    "typeProgressNote": "प्रगति अपडेट",
+    "unread": "{{count}} अपठित",
+    "allCaughtUp": "सब पढ़ लिया",
+    "markAllRead": "सभी पढ़ा हुआ चिह्नित करें",
+    "simulate": "सिमुलेट",
+    "markRead": "पढ़ा हुआ चिह्नित करें",
+    "viewProfile": "प्रोफ़ाइल देखें",
+    "filterAll": "सभी",
+    "filterUnread": "अपठित",
+    "filterWhatsApp": "WhatsApp",
+    "emptyUnread": "आप सब पढ़ चुके हैं!",
+    "emptyAll": "अभी तक कोई नोटिफिकेशन नहीं",
+    "emptyUnreadSub": "हर क्लाइंट अपडेट की समीक्षा हो चुकी है।",
+    "emptyAllSub": "इनकमिंग अपडेट देखने के लिए सिमुलेट दबाएं।",
+    "viewAll": "पूरा इतिहास देखें"
+  }
+}

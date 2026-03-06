@@ -683,6 +683,101 @@ export const dummySessions = [
 ];
 
 // ---------------------------------------------------------------------------
+// Dummy Notifications — simulated incoming WhatsApp client updates
+// ---------------------------------------------------------------------------
+
+export const dummyNotifications = [
+  {
+    notification_id: 'notif-0001',
+    client_id:       'client-0001', // Priya
+    type:            'meal_upload',
+    title:           'Meal photo shared',
+    message:         'Sent her post-workout lunch photo for calorie logging.',
+    timestamp:       '2026-02-24T11:30:00Z',
+    read:            false,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0002',
+    client_id:       'client-0002', // Rahul
+    type:            'weight_checkin',
+    title:           'Weight check-in received',
+    message:         'Logged today\'s weigh-in: 78.4 kg — down 0.3 kg from last week.',
+    timestamp:       '2026-02-24T09:15:00Z',
+    read:            false,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0003',
+    client_id:       'client-0006', // Rohan
+    type:            'progress_note',
+    title:           'Progress update',
+    message:         'Shared a note about feeling more energetic and sleeping better this week.',
+    timestamp:       '2026-02-24T08:00:00Z',
+    read:            true,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0004',
+    client_id:       'client-0004', // Arjun
+    type:            'workout_log',
+    title:           'Workout completed',
+    message:         'Confirmed he finished the PPL Push Day and hit a new bench press PB.',
+    timestamp:       '2026-02-23T18:30:00Z',
+    read:            false,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0005',
+    client_id:       'client-0003', // Sneha
+    type:            'meal_upload',
+    title:           'Meal photo shared',
+    message:         'Uploaded her breakfast before the morning session — asked for portion feedback.',
+    timestamp:       '2026-02-23T07:45:00Z',
+    read:            true,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0006',
+    client_id:       'client-0005', // Kavya
+    type:            'weight_checkin',
+    title:           'Weight check-in received',
+    message:         'Logged this morning\'s weight: 62.1 kg — steady for the third week.',
+    timestamp:       '2026-02-22T10:00:00Z',
+    read:            true,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0007',
+    client_id:       'client-0001', // Priya
+    type:            'progress_note',
+    title:           'Progress update',
+    message:         'Shared her weekly measurements and two progress photos for comparison.',
+    timestamp:       '2026-02-21T16:00:00Z',
+    read:            true,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+  {
+    notification_id: 'notif-0008',
+    client_id:       'client-0006', // Rohan
+    type:            'meal_upload',
+    title:           'Meal photo shared',
+    message:         'Sent a cheat meal photo over the weekend and asked if portions are okay.',
+    timestamp:       '2026-02-21T13:15:00Z',
+    read:            true,
+    source:          'whatsapp',
+    is_dummy:        true,
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Convenience: all dummy data in one export
 // ---------------------------------------------------------------------------
 

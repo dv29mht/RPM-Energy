@@ -15,6 +15,7 @@
 
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronLeft, ChevronRight, Plus, X,
   MapPin, Video, Clock, Calendar, CalendarDays,
@@ -563,8 +564,11 @@ function SessionDetailModal({ session, client, allClients, onClose, onUpdate }) 
 // SessionBlock — a session card in the week grid
 // ---------------------------------------------------------------------------
 
+/** Session-type color — used for stripe and month dots. */
+const SESSION_TYPE_COLOUR = { online: '#3b82f6', in_person: '#22c55e' };
+
 function SessionBlock({ session, client, allClients, onClick }) {
-  const colour   = getClientColor(client?.client_id, allClients);
+  const colour   = SESSION_TYPE_COLOUR[session.session_type] ?? '#64748b';
   const derived  = deriveStatus(session);
   const isOnline = session.session_type === 'online';
 
@@ -751,7 +755,8 @@ function WeekView({ sessions, allClients, viewDate, onNavigate, onBook, onSessio
 // MonthView (E1 — toggle view)
 // ---------------------------------------------------------------------------
 
-function MonthView({ sessions, allClients, viewDate, onNavigate, onDayClick, onToday }) {
+function MonthView({ sessions, allClients, viewDate, onNavigate, onDayClick }) {
+  const { t } = useTranslation();
   const { year, month } = getYearMonth(viewDate);
   const cells           = useMemo(() => getMonthGrid(year, month), [year, month]);
   const sessionMap      = useMemo(() => buildSessionMap(sessions), [sessions]);
@@ -831,7 +836,7 @@ function MonthView({ sessions, allClients, viewDate, onNavigate, onDayClick, onT
                 {cell.day}
               </div>
 
-              {/* Session dots */}
+              {/* Session dots — color by session type */}
               {cellSess.length > 0 && inMonth && (
                 <div className="flex flex-wrap gap-0.5 items-center mt-auto">
                   {cellSess.slice(0, MAX_DOTS).map(s => (
@@ -839,7 +844,7 @@ function MonthView({ sessions, allClients, viewDate, onNavigate, onDayClick, onT
                       key={s.session_id}
                       title={`${allClients.find(c => c.client_id === s.client_id)?.name} ${fmt12h(s.time)}`}
                       className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: getClientColor(s.client_id, allClients) }}
+                      style={{ backgroundColor: SESSION_TYPE_COLOUR[s.session_type] ?? '#64748b' }}
                     />
                   ))}
                   {cellSess.length > MAX_DOTS && (
@@ -854,20 +859,20 @@ function MonthView({ sessions, allClients, viewDate, onNavigate, onDayClick, onT
         })}
       </div>
 
-      {/* Dynamic legend — generated from live allClients array */}
+      {/* Session-type legend */}
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs">
-        <span className="font-semibold text-slate-500 text-[11px]">Legend:</span>
-        {allClients.map(c => (
-          <div key={c.client_id} className="flex items-center gap-1.5">
-            <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: TIER_COLORS[c.classification] ?? '#64748b' }}
-            />
-            <span className="text-slate-500 text-[11px]">{c.name.split(' ')[0]}</span>
+        <span className="font-semibold text-slate-500 text-[11px]">{t('schedule.legend')}:</span>
+        {[
+          { key: 'in_person', colour: SESSION_TYPE_COLOUR.in_person, labelKey: 'schedule.inPerson' },
+          { key: 'online',    colour: SESSION_TYPE_COLOUR.online,    labelKey: 'schedule.online'   },
+        ].map(({ key, colour, labelKey }) => (
+          <div key={key} className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colour }} />
+            <span className="text-slate-500 text-[11px]">{t(labelKey)}</span>
           </div>
         ))}
         <span className="text-slate-400 text-[11px] ml-auto hidden sm:block">
-          Click any day to jump to that week
+          {t('schedule.clickToJump')}
         </span>
       </div>
     </div>
@@ -883,7 +888,7 @@ export default function Schedule() {
   const [allClients]   = useState(loadClients);
   const [sessions,      setSessions]     = useState(loadSessions);
   const [view,          setView]         = useState('week');    // 'week' | 'month'
-  const [viewDate,      setViewDate]     = useState(REAL_TODAY_STR);
+  const [viewDate,      setViewDate]     = useState(TODAY_STR); // seed date so dummy sessions are visible
   const [bookDate,      setBookDate]     = useState(null);      // non-null → modal open
   const [detailTarget,  setDetailTarget] = useState(null);      // session being viewed/logged
   const [filterClient,  setFilterClient] = useState('');        // '' = all clients

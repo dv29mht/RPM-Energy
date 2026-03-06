@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "clients": "My Clients",
+    "schedule": "Schedule",
+    "workoutPlans": "Workout Plans",
+    "nutritionPlans": "Nutrition Plans",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "settings": {
+    "pageTitle": "Trainer Settings",
+    "pageSubtitle": "Manage your profile and default coaching preferences.",
+    "saveButton": "Save Changes",
+    "savedLabel": "Saved",
+    "profile": {
+      "title": "Trainer Profile",
+      "description": "Your name and contact details.",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "gymName": "Workspace / Gym Name",
+      "fullNamePlaceholder": "e.g. Vikram Sood",
+      "emailPlaceholder": "you@example.com",
+      "gymNamePlaceholder": "e.g. Iron Temple Gym, Mumbai"
+    },
+    "coachingMode": {
+      "title": "Default Coaching Mode",
+      "description": "Sets the default session type when booking new sessions.",
+      "online": {
+        "label": "Online Only",
+        "description": "All sessions conducted remotely via video call."
+      },
+      "in_person": {
+        "label": "In-Person",
+        "description": "All sessions at the gym or client's location."
+      },
+      "hybrid": {
+        "label": "Hybrid",
+        "description": "Mix of online and in-person based on client needs."
+      }
+    },
+    "language": {
+      "title": "Language / भाषा",
+      "description": "Change the app display language."
+    }
+  },
+  "dashboard": {
+    "todaysSessions": "Today's Sessions",
+    "noSessions": "No sessions scheduled for today",
+    "online": "Online",
+    "inPerson": "In-Person",
+    "totalClients": "Total Clients",
+    "onYourRoster": "On your roster",
+    "avgMealsLogged": "Avg Meals Logged",
+    "perClientThisWeek": "Per client this week",
+    "avgCheckIns": "Avg Check-ins",
+    "workoutSessionsThisWeek": "Workout sessions this week",
+    "starClient": "Star Client of the Week",
+    "engagementScore": "Engagement score",
+    "clientEngagement": "Client Engagement",
+    "logEntriesHint": "Log entries per client — click pills to compare",
+    "weekOf": "Week of",
+    "logs": "logs",
+    "weightTrends": "Weight Trends",
+    "weightTrendHint": "8-week history — click a pill to show / hide",
+    "clientClassifications": "Client Classifications",
+    "classificationHint": "Auto-calculated weekly · Drag a client into a different tier to reclassify",
+    "dropHere": "Drop here to move to {{tier}}",
+    "nudge": "Nudge",
+    "tiers": {
+      "serious": {
+        "label": "Serious",
+        "countLabel": "Logging 5+ times/week",
+        "suggestion": "Celebrate them — they're your best marketing."
+      },
+      "active": {
+        "label": "Active",
+        "countLabel": "Logging 3–4 times/week",
+        "suggestion": "Keep momentum. Light check-in this week."
+      },
+      "casual": {
+        "label": "Casual",
+        "countLabel": "Logging 1–2 times/week",
+        "suggestion": "Send a nudge. Ask if schedule has changed."
+      },
+      "inactive": {
+        "label": "Inactive",
+        "countLabel": "No logs this week",
+        "suggestion": "Priority follow-up. Risk of churn."
+      }
+    }
+  },
+  "schedule": {
+    "legend": "Legend",
+    "inPerson": "In-Person",
+    "online": "Online",
+    "clickToJump": "Click any day to jump to that week"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "typeMealUpload": "Meal Upload",
+    "typeWeightCheckin": "Weight Check-in",
+    "typeWorkoutLog": "Workout Log",
+    "typeProgressNote": "Progress Update",
+    "unread": "{{count}} unread",
+    "allCaughtUp": "All caught up",
+    "markAllRead": "Mark all read",
+    "simulate": "Simulate",
+    "markRead": "Mark read",
+    "viewProfile": "View Profile",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterWhatsApp": "WhatsApp",
+    "emptyUnread": "You're all caught up!",
+    "emptyAll": "No notifications yet",
+    "emptyUnreadSub": "Every client update has been reviewed.",
+    "emptyAllSub": "Hit Simulate to see how incoming client updates appear.",
+    "viewAll": "View All History"
+  }
+}

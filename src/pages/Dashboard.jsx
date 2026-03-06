@@ -13,6 +13,7 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import {
   Users, UtensilsCrossed, Activity, Star, MessageCircle,
@@ -25,6 +26,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+import NotificationBell from '../components/NotificationBell.jsx';
 import { dummyClients, dummySessions }                 from '../data/dummyData.js';
 import { getThisWeekStats, getEngagementChartData,
          getWeightTrendData, getClassificationGroups } from '../data/dashboardStats.js';
@@ -47,51 +49,47 @@ const CLIENT_COLOURS = {
   'client-0006': '#f43f5e', // Rohan  — rose
 };
 
-// Tier visual config — ghost/subtle badge style, neutral row hover
+// Tier visual config — uses translation keys for all user-visible strings
 const TIER_CONFIG = {
   serious: {
-    icon:        Trophy,
-    label:       'Serious',
-    count_label: 'Logging 5+ times/week',
-    suggestion:  "Celebrate them — they're your best marketing.",
+    icon:          Trophy,
+    labelKey:      'dashboard.tiers.serious.label',
+    countLabelKey: 'dashboard.tiers.serious.countLabel',
+    suggestionKey: 'dashboard.tiers.serious.suggestion',
     badgeCls:    'bg-emerald-50 text-emerald-700 border border-emerald-200',
     headerCls:   'text-emerald-700',
     borderCls:   'border-emerald-200',
     rowHoverCls: 'hover:bg-zinc-50',
-    dotColour:   '#10b981',
   },
   active: {
-    icon:        CheckCircle,
-    label:       'Active',
-    count_label: 'Logging 3–4 times/week',
-    suggestion:  'Keep momentum. Light check-in this week.',
+    icon:          CheckCircle,
+    labelKey:      'dashboard.tiers.active.label',
+    countLabelKey: 'dashboard.tiers.active.countLabel',
+    suggestionKey: 'dashboard.tiers.active.suggestion',
     badgeCls:    'bg-blue-50 text-blue-700 border border-blue-200',
     headerCls:   'text-blue-700',
     borderCls:   'border-blue-200',
     rowHoverCls: 'hover:bg-zinc-50',
-    dotColour:   '#3b82f6',
   },
   casual: {
-    icon:        AlertTriangle,
-    label:       'Casual',
-    count_label: 'Logging 1–2 times/week',
-    suggestion:  'Send a nudge. Ask if schedule has changed.',
+    icon:          AlertTriangle,
+    labelKey:      'dashboard.tiers.casual.label',
+    countLabelKey: 'dashboard.tiers.casual.countLabel',
+    suggestionKey: 'dashboard.tiers.casual.suggestion',
     badgeCls:    'bg-amber-50 text-amber-700 border border-amber-200',
     headerCls:   'text-amber-700',
     borderCls:   'border-amber-200',
     rowHoverCls: 'hover:bg-zinc-50',
-    dotColour:   '#f59e0b',
   },
   inactive: {
-    icon:        XCircle,
-    label:       'Inactive',
-    count_label: 'No logs this week',
-    suggestion:  'Priority follow-up. Risk of churn.',
+    icon:          XCircle,
+    labelKey:      'dashboard.tiers.inactive.label',
+    countLabelKey: 'dashboard.tiers.inactive.countLabel',
+    suggestionKey: 'dashboard.tiers.inactive.suggestion',
     badgeCls:    'bg-rose-50 text-rose-700 border border-rose-200',
     headerCls:   'text-rose-700',
     borderCls:   'border-rose-200',
     rowHoverCls: 'hover:bg-zinc-50',
-    dotColour:   '#ef4444',
   },
 };
 
@@ -119,6 +117,7 @@ function whatsAppLink(phone, name) {
 // ---------------------------------------------------------------------------
 
 function SessionCard({ session, client }) {
+  const { t } = useTranslation();
   const isOnline = session.session_type === 'online';
 
   return (
@@ -133,8 +132,8 @@ function SessionCard({ session, client }) {
         <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full
           ${isOnline ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
           {isOnline
-            ? <><Video className="w-2.5 h-2.5" />Online</>
-            : <><MapPin className="w-2.5 h-2.5" />In-Person</>}
+            ? <><Video className="w-2.5 h-2.5" />{t('dashboard.online')}</>
+            : <><MapPin className="w-2.5 h-2.5" />{t('dashboard.inPerson')}</>}
         </span>
       </div>
       <div className="flex items-center gap-2.5">
@@ -152,6 +151,7 @@ function SessionCard({ session, client }) {
 }
 
 function TodayStrip({ sessions, clients }) {
+  const { t } = useTranslation();
   const clientMap  = Object.fromEntries(clients.map(c => [c.client_id, c]));
   const todaySorted = [...sessions]
     .filter(s => s.date === TODAY)
@@ -165,15 +165,18 @@ function TodayStrip({ sessions, clients }) {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-          Today's Sessions
+          {t('dashboard.todaysSessions')}
         </h2>
-        <span className="text-xs text-slate-400 font-medium">{dateLabel}</span>
+        <div className="flex items-center gap-2">
+          <NotificationBell placement="mobile" />
+          <span className="text-xs text-slate-400 font-medium">{dateLabel}</span>
+        </div>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {todaySorted.length === 0 ? (
           <div className="flex items-center gap-2 bg-white rounded-xl border border-dashed
                           border-slate-200 px-4 py-3 text-slate-400 text-sm">
-            No sessions scheduled for today
+            {t('dashboard.noSessions')}
           </div>
         ) : (
           todaySorted.map(s => (
@@ -205,6 +208,7 @@ function StatCard({ icon: Icon, iconBg, iconCls, label, value, sub }) {
 }
 
 function StarClientCard({ starClient }) {
+  const { t } = useTranslation();
   if (!starClient) return null;
   const { client, score } = starClient;
   const canvasRef = useRef(null);
@@ -229,7 +233,6 @@ function StarClientCard({ starClient }) {
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none rounded-xl"
       />
-      {/* Top row: avatar + name/goal — mirrors icon+value position in StatCard */}
       <div className="flex items-center gap-2.5 mb-4">
         <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0
                         bg-zinc-100 text-zinc-800 border border-zinc-200 text-xs font-bold">
@@ -240,12 +243,11 @@ function StarClientCard({ starClient }) {
           <p className="text-xs text-slate-400 truncate">{client.goal}</p>
         </div>
       </div>
-      {/* Bottom row: star icon inline with label — mirrors label row in StatCard */}
       <div className="flex items-center gap-1.5">
         <Star className="w-4 h-4 text-amber-500 flex-shrink-0" fill="currentColor" />
-        <p className="text-sm font-medium text-slate-500">Star Client of the Week</p>
+        <p className="text-sm font-medium text-slate-500">{t('dashboard.starClient')}</p>
       </div>
-      <p className="text-xs text-slate-400 mt-0.5">Engagement score: {score}</p>
+      <p className="text-xs text-slate-400 mt-0.5">{t('dashboard.engagementScore')}: {score}</p>
     </Link>
   );
 }
@@ -255,10 +257,11 @@ function StarClientCard({ starClient }) {
 // ---------------------------------------------------------------------------
 
 function EngagementTooltip({ active, payload, label }) {
+  const { t } = useTranslation();
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-lg min-w-[180px]">
-      <p className="text-xs font-semibold text-slate-500 mb-2">Week of {label}</p>
+      <p className="text-xs font-semibold text-slate-500 mb-2">{t('dashboard.weekOf')} {label}</p>
       {payload.map(entry => (
         <div key={entry.dataKey} className="flex items-center justify-between gap-4 text-xs py-0.5">
           <div className="flex items-center gap-1.5">
@@ -267,7 +270,7 @@ function EngagementTooltip({ active, payload, label }) {
               {firstName(dummyClients.find(c => c.client_id === entry.dataKey)?.name ?? entry.name)}
             </span>
           </div>
-          <span className="font-semibold text-slate-800">{entry.value} logs</span>
+          <span className="font-semibold text-slate-800">{entry.value} {t('dashboard.logs')}</span>
         </div>
       ))}
     </div>
@@ -275,7 +278,7 @@ function EngagementTooltip({ active, payload, label }) {
 }
 
 function EngagementBarChart({ data }) {
-  // All clients hidden by default except the first — click a pill to compare
+  const { t } = useTranslation();
   const [hidden, setHidden] = useState(
     () => new Set(dummyClients.slice(1).map(c => c.client_id))
   );
@@ -291,11 +294,10 @@ function EngagementBarChart({ data }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-slate-800">Client Engagement</h3>
-        <p className="text-xs text-slate-400 mt-0.5">Log entries per client — click pills to compare</p>
+        <h3 className="text-sm font-semibold text-slate-800">{t('dashboard.clientEngagement')}</h3>
+        <p className="text-xs text-slate-400 mt-0.5">{t('dashboard.logEntriesHint')}</p>
       </div>
 
-      {/* Toggle pills */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {dummyClients.map(c => {
           const isHidden = hidden.has(c.client_id);
@@ -371,7 +373,7 @@ function WeightTooltip({ active, payload, label }) {
 }
 
 function WeightTrendChart({ data }) {
-  // All lines hidden by default except the first client — click a pill to show a line
+  const { t } = useTranslation();
   const [hidden, setHidden] = useState(
     () => new Set(dummyClients.slice(1).map(c => c.client_id))
   );
@@ -387,11 +389,10 @@ function WeightTrendChart({ data }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-slate-800">Weight Trends</h3>
-        <p className="text-xs text-slate-400 mt-0.5">8-week history — click a pill to show / hide</p>
+        <h3 className="text-sm font-semibold text-slate-800">{t('dashboard.weightTrends')}</h3>
+        <p className="text-xs text-slate-400 mt-0.5">{t('dashboard.weightTrendHint')}</p>
       </div>
 
-      {/* Toggle pills */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {dummyClients.map(c => {
           const isHidden = hidden.has(c.client_id);
@@ -457,6 +458,7 @@ function WeightTrendChart({ data }) {
 // ---------------------------------------------------------------------------
 
 function ClientRow({ client, tierKey }) {
+  const { t } = useTranslation();
   const cfg = TIER_CONFIG[tierKey];
 
   return (
@@ -469,19 +471,16 @@ function ClientRow({ client, tierKey }) {
       className={`flex items-center gap-3 px-4 py-2.5 transition-colors cursor-grab
                   active:cursor-grabbing ${cfg.rowHoverCls}`}
     >
-      {/* Avatar */}
       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                       bg-zinc-100 text-zinc-800 border border-zinc-200 text-[11px] font-bold">
         {initials(client.name)}
       </div>
 
-      {/* Name + goal */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{client.name}</p>
         <p className="text-xs text-slate-400 truncate leading-tight">{client.goal}</p>
       </div>
 
-      {/* Score + MO indicator */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {client.classification_override && (
           <span className="text-[9px] font-medium bg-slate-100 text-slate-500 border border-slate-200
@@ -494,7 +493,6 @@ function ClientRow({ client, tierKey }) {
         </span>
       </div>
 
-      {/* WhatsApp nudge */}
       <a
         href={whatsAppLink(client.phone, client.name)}
         target="_blank"
@@ -506,15 +504,19 @@ function ClientRow({ client, tierKey }) {
                    transition-all"
       >
         <MessageCircle className="w-3 h-3" />
-        Nudge
+        {t('dashboard.nudge')}
       </a>
     </div>
   );
 }
 
 function TierSection({ tierKey, clients, onDrop }) {
+  const { t } = useTranslation();
   const cfg      = TIER_CONFIG[tierKey];
   const Icon     = cfg.icon;
+  const label      = t(cfg.labelKey);
+  const countLabel = t(cfg.countLabelKey);
+  const suggestion = t(cfg.suggestionKey);
   const [dragOver, setDragOver] = useState(false);
 
   function handleDragOver(e) {
@@ -523,7 +525,6 @@ function TierSection({ tierKey, clients, onDrop }) {
     setDragOver(true);
   }
   function handleDragLeave(e) {
-    // Only clear when leaving the section entirely (not a child)
     if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false);
   }
   function handleDrop(e) {
@@ -545,24 +546,22 @@ function TierSection({ tierKey, clients, onDrop }) {
                     ? `${cfg.borderCls} ring-2 ring-brand-400 bg-brand-50/30`
                     : cfg.borderCls}`}
     >
-      {/* Header */}
       <div className={`flex items-center justify-between px-4 py-3 bg-white rounded-t-xl border-b ${cfg.borderCls}`}>
         <div className="flex items-center gap-2.5">
           <Icon className={`w-4 h-4 ${cfg.headerCls}`} />
-          <span className={`text-sm font-bold ${cfg.headerCls}`}>{cfg.label}</span>
+          <span className={`text-sm font-bold ${cfg.headerCls}`}>{label}</span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.badgeCls}`}>
             {clients.length}
           </span>
-          <span className="text-xs text-slate-400 hidden sm:block">{cfg.count_label}</span>
+          <span className="text-xs text-slate-400 hidden sm:block">{countLabel}</span>
         </div>
-        <p className="text-xs text-slate-400 italic hidden lg:block">{cfg.suggestion}</p>
+        <p className="text-xs text-slate-400 italic hidden lg:block">{suggestion}</p>
       </div>
 
-      {/* Rows — or drop-here hint when empty but hovered */}
       <div className="bg-white divide-y divide-slate-50 rounded-b-xl">
         {clients.length === 0 && dragOver ? (
           <div className="px-4 py-4 text-xs text-center text-brand-400 font-medium">
-            Drop here to move to {cfg.label}
+            {t('dashboard.dropHere', { tier: label })}
           </div>
         ) : (
           clients.map(c => (
@@ -575,12 +574,11 @@ function TierSection({ tierKey, clients, onDrop }) {
 }
 
 function ClassificationPanel({ initialGroups }) {
+  const { t } = useTranslation();
   const [overrides, setOverrides] = useState({});
 
   function handleDrop(clientId, newTier) {
-    // Update local state immediately
     setOverrides(prev => ({ ...prev, [clientId]: newTier }));
-    // Persist classification change to rpm_clients in localStorage
     try {
       const raw = localStorage.getItem(LS_CLIENTS_KEY);
       if (raw) {
@@ -611,10 +609,8 @@ function ClassificationPanel({ initialGroups }) {
   return (
     <section>
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-800">Client Classifications</h3>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Auto-calculated weekly · Drag a client into a different tier to reclassify
-        </p>
+        <h3 className="text-sm font-semibold text-slate-800">{t('dashboard.clientClassifications')}</h3>
+        <p className="text-xs text-slate-400 mt-0.5">{t('dashboard.classificationHint')}</p>
       </div>
       <div className="space-y-3">
         {ALL_TIERS.map(tier => (
@@ -635,6 +631,7 @@ function ClassificationPanel({ initialGroups }) {
 // ---------------------------------------------------------------------------
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const stats          = useMemo(() => getThisWeekStats(),        []);
   const engagementData = useMemo(() => getEngagementChartData(),  []);
   const weightData     = useMemo(() => getWeightTrendData(),      []);
@@ -653,25 +650,25 @@ export default function Dashboard() {
             icon={Users}
             iconBg="bg-slate-100"
             iconCls="text-slate-600"
-            label="Total Clients"
+            label={t('dashboard.totalClients')}
             value={stats.totalClients}
-            sub="On your roster"
+            sub={t('dashboard.onYourRoster')}
           />
           <StatCard
             icon={UtensilsCrossed}
             iconBg="bg-emerald-50"
             iconCls="text-emerald-600"
-            label="Avg Meals Logged"
+            label={t('dashboard.avgMealsLogged')}
             value={stats.avgMeals}
-            sub="Per client this week"
+            sub={t('dashboard.perClientThisWeek')}
           />
           <StatCard
             icon={Activity}
             iconBg="bg-blue-50"
             iconCls="text-blue-500"
-            label="Avg Check-ins"
+            label={t('dashboard.avgCheckIns')}
             value={stats.avgCheckIns}
-            sub="Workout sessions this week"
+            sub={t('dashboard.workoutSessionsThisWeek')}
           />
           <StarClientCard starClient={stats.starClient} />
         </div>

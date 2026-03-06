@@ -5,8 +5,8 @@ import Clients       from './pages/Clients.jsx';
 import ClientProfile from './pages/ClientProfile.jsx';
 import Schedule      from './pages/Schedule.jsx';
 import Plans          from './pages/Plans.jsx';
-import NutritionPlans from './pages/NutritionPlans.jsx';
-import Payments       from './pages/Payments.jsx';
+import NutritionPlans  from './pages/NutritionPlans.jsx';
+import Notifications  from './pages/Notifications.jsx';
 import Settings       from './pages/Settings.jsx';
 import './App.css';
 
@@ -22,8 +22,8 @@ export default function App() {
           <Route path="/clients/:id" element={<ClientProfile />} />
           <Route path="/schedule"    element={<Schedule />} />
           <Route path="/plans"       element={<Plans />} />
-          <Route path="/nutrition"   element={<NutritionPlans />} />
-          <Route path="/payments"    element={<Payments />} />
+          <Route path="/nutrition"       element={<NutritionPlans />} />
+          <Route path="/notifications"  element={<Notifications />} />
           <Route path="/settings"    element={<Settings />} />
         </Route>
 

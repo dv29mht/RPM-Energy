@@ -1,12 +1,12 @@
 /**
- * RPM.ENERGY — Nutrition Plan Library & Builder (/nutrition)
+ * progrx — Nutrition Plan Library & Builder (/nutrition)
  *
  * Elements:
  *  N1 — Plan Library   : card grid — name, macros, assigned client count, dynamic icon
- *  N2 — Create Plan    : inline builder (name, description, icon picker, macros, guidelines)
+ *  N2 — Create Plan    : inline builder (name, description, icon picker, macros, meals)
  *  N3 — Save Template  : saves to localStorage; card appears in library grid
  *  N4 — Assign         : modal with client checklist; updates assigned_nutrition_id
- *  N5 — Share          : formatted WhatsApp macro summary + copy-to-clipboard
+ *  N5 — Share          : formatted WhatsApp macro summary, per-client WA links
  *
  * Also supports: Edit, Duplicate, Delete (with referential integrity guard).
  *
@@ -17,7 +17,7 @@
 import { useState } from 'react';
 import {
   Plus, X, Edit2, Copy, Trash2, Users, Share2, Check,
-  ArrowLeft, Apple, Beef, Carrot, Flame, Droplet,
+  ArrowLeft, Apple, Beef, Carrot, Flame, Droplet, Clock,
 } from 'lucide-react';
 
 import { dummyNutritionPlans, dummyClients } from '../data/dummyData.js';
@@ -27,18 +27,32 @@ import { dummyNutritionPlans, dummyClients } from '../data/dummyData.js';
 // ---------------------------------------------------------------------------
 
 const ICON_OPTIONS = [
-  { key: 'flame',   Icon: Flame,   label: 'Flame'   },
+  { key: 'flame',   Icon: Flame,   label: 'Flame'    },
   { key: 'beef',    Icon: Beef,    label: 'Beef'     },
   { key: 'apple',   Icon: Apple,   label: 'Apple'    },
   { key: 'carrot',  Icon: Carrot,  label: 'Carrot'   },
   { key: 'droplet', Icon: Droplet, label: 'Hydration' },
 ];
 
-/** Renders the correct icon for a plan's iconType, falling back to Apple. */
 function PlanIcon({ iconType, className }) {
   const match = ICON_OPTIONS.find(o => o.key === iconType);
   const Icon  = match ? match.Icon : Apple;
   return <Icon className={className} />;
+}
+
+// ---------------------------------------------------------------------------
+// Meal constants
+// ---------------------------------------------------------------------------
+
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert', 'Beverage'];
+
+/** Convert "HH:MM" → "H:MM AM/PM" */
+function fmt12h(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hr   = h % 12 || 12;
+  return `${hr}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,7 +70,7 @@ const BLANK_PLAN = {
   protein_g:   '',
   carbs_g:     '',
   fats_g:      '',
-  guidelines:  '',
+  meals:       [],
 };
 
 // ---------------------------------------------------------------------------
@@ -97,6 +111,10 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
+/**
+ * Formats a nutrition plan as WhatsApp-ready text.
+ * Renders structured meals if present, falls back to legacy guidelines string.
+ */
 function formatNutritionPlanText(plan) {
   const lines = [
     `🥗 *${plan.name}*`,
@@ -108,10 +126,21 @@ function formatNutritionPlanText(plan) {
     `• Carbs:    ${plan.carbs_g}g`,
     `• Fats:     ${plan.fats_g}g`,
   ];
-  if (plan.guidelines?.trim()) {
+
+  // Structured meals (new format)
+  if (plan.meals?.length > 0) {
+    lines.push('', `🍽️ *Meal Schedule*`);
+    plan.meals.forEach((meal, i) => {
+      const time = meal.time ? ` (${fmt12h(meal.time)})` : '';
+      const desc = meal.description?.trim() ? ` — ${meal.description.trim()}` : '';
+      lines.push(`${i + 1}. ${meal.name}${time}${desc}`);
+    });
+  } else if (plan.guidelines?.trim()) {
+    // Legacy guidelines fallback
     lines.push('', `📝 *Guidelines*`, plan.guidelines.trim());
   }
-  lines.push('', '— Sent via RPM.ENERGY');
+
+  lines.push('', '— Sent via progrx.in');
   return lines.filter(l => l !== undefined).join('\n');
 }
 
@@ -136,7 +165,6 @@ function AssignModal({ plan, allClients, onClose, onSave }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
 
-          {/* Header */}
           <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-zinc-100">
             <div>
               <h2 className="text-base font-bold text-zinc-800">Assign to Clients</h2>
@@ -147,7 +175,6 @@ function AssignModal({ plan, allClients, onClose, onSave }) {
             </button>
           </div>
 
-          {/* Client list */}
           <div className="px-6 py-4 space-y-2 max-h-72 overflow-y-auto">
             {allClients.map(c => {
               const checked = selected.has(c.client_id);
@@ -178,7 +205,6 @@ function AssignModal({ plan, allClients, onClose, onSave }) {
             })}
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 px-6 pb-5 pt-2">
             <button
               onClick={onClose}
@@ -202,18 +228,24 @@ function AssignModal({ plan, allClients, onClose, onSave }) {
 }
 
 // ---------------------------------------------------------------------------
-// ShareModal
+// ShareModal — per-client WhatsApp links
 // ---------------------------------------------------------------------------
 
-function ShareModal({ plan, onClose }) {
+function ShareModal({ plan, allClients, onClose }) {
   const [copied, setCopied] = useState(false);
-  const text = formatNutritionPlanText(plan);
+  const text            = formatNutritionPlanText(plan);
+  const assignedClients = allClients.filter(c => plan.assigned_to.includes(c.client_id));
 
   function handleCopy() {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  }
+
+  function waLink(client) {
+    const phone = (client.phone ?? '').replace(/\D/g, '');
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   }
 
   return (
@@ -232,33 +264,66 @@ function ShareModal({ plan, onClose }) {
             </button>
           </div>
 
-          <div className="px-6 py-4">
+          {/* Plan text preview */}
+          <div className="px-6 pt-4 pb-3">
             <pre className="text-xs text-zinc-700 bg-zinc-50 border border-zinc-200
-                            rounded-xl p-4 whitespace-pre-wrap font-mono max-h-64 overflow-y-auto">
+                            rounded-xl p-4 whitespace-pre-wrap font-mono max-h-52 overflow-y-auto">
               {text}
             </pre>
           </div>
 
-          <div className="flex gap-3 px-6 pb-5">
+          {/* Copy button */}
+          <div className="px-6 pb-3">
             <button
               onClick={handleCopy}
-              className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition
+              className={`w-full rounded-lg px-4 py-2 text-sm font-bold transition
                           ${copied
                             ? 'bg-emerald-500 text-white'
-                            : 'bg-brand-500 text-white hover:bg-brand-600'}`}
+                            : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'}`}
             >
               {copied ? '✓ Copied!' : 'Copy Text'}
             </button>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(text)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 flex items-center justify-center rounded-lg px-4 py-2 text-sm
-                         font-bold bg-[#25D366] text-white hover:opacity-90 transition"
-            >
-              WhatsApp
-            </a>
           </div>
+
+          {/* Per-client WhatsApp links */}
+          {assignedClients.length > 0 ? (
+            <div className="px-6 pb-5 space-y-2">
+              <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">
+                Send to assigned clients
+              </p>
+              {assignedClients.map(c => (
+                <a
+                  key={c.client_id}
+                  href={waLink(c)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl
+                             bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30
+                             transition text-left"
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center
+                                  bg-zinc-100 text-zinc-800 border border-zinc-200
+                                  text-[10px] font-bold flex-shrink-0">
+                    {initials(c.name)}
+                  </div>
+                  <span className="flex-1 text-sm font-semibold text-zinc-700">{c.name}</span>
+                  <span className="text-[11px] font-bold text-[#25D366]">WhatsApp →</span>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 pb-5">
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(text)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center w-full rounded-lg px-4 py-2 text-sm
+                           font-bold bg-[#25D366] text-white hover:opacity-90 transition"
+              >
+                WhatsApp
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -277,7 +342,6 @@ function NutritionPlanCard({ plan, allClients, onEdit, onDuplicate, onDelete, on
     <div className="bg-white rounded-xl border border-zinc-200 p-5 flex flex-col
                     hover:border-zinc-300 hover:shadow-md transition-all">
 
-      {/* Top row: plan icon + action buttons */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center flex-shrink-0">
           <PlanIcon iconType={plan.iconType} className="w-5 h-5 text-brand-500" />
@@ -307,7 +371,6 @@ function NutritionPlanCard({ plan, allClients, onEdit, onDuplicate, onDelete, on
         </div>
       </div>
 
-      {/* Plan name + description */}
       <h3 className="text-sm font-bold text-zinc-800 leading-tight">{plan.name}</h3>
       <p className="text-xs text-zinc-500 mt-1 mb-3 leading-relaxed line-clamp-2">
         {plan.description || 'No description.'}
@@ -328,12 +391,20 @@ function NutritionPlanCard({ plan, allClients, onEdit, onDuplicate, onDelete, on
         ))}
       </div>
 
-      {/* Assigned client count */}
+      {/* Meal count chip */}
+      {(plan.meals?.length > 0) && (
+        <div className="flex items-center gap-1 mb-2">
+          <Clock className="w-3 h-3 text-zinc-400" />
+          <span className="text-[11px] text-zinc-400 font-medium">
+            {plan.meals.length} meal{plan.meals.length !== 1 ? 's' : ''} scheduled
+          </span>
+        </div>
+      )}
+
       <p className="text-[11px] text-zinc-400 font-medium mb-2">
         {clientCount} client{clientCount !== 1 ? 's' : ''} assigned
       </p>
 
-      {/* Assigned client avatars */}
       {assignedClients.length > 0 && (
         <div className="flex items-center gap-1 mb-4">
           {assignedClients.slice(0, 5).map(c => (
@@ -356,10 +427,8 @@ function NutritionPlanCard({ plan, allClients, onEdit, onDuplicate, onDelete, on
         </div>
       )}
 
-      {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Action buttons */}
       <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100">
         <button
           onClick={() => onAssign(plan)}
@@ -384,7 +453,7 @@ function NutritionPlanCard({ plan, allClients, onEdit, onDuplicate, onDelete, on
 }
 
 // ---------------------------------------------------------------------------
-// IconPicker — row of selectable icon buttons for the builder form
+// IconPicker
 // ---------------------------------------------------------------------------
 
 function IconPicker({ value, onChange }) {
@@ -415,14 +484,91 @@ function IconPicker({ value, onChange }) {
 }
 
 // ---------------------------------------------------------------------------
+// MealRow — one row in the meal schedule builder
+// Layout (L→R): Name dropdown | Time picker | Description input | X button
+// ---------------------------------------------------------------------------
+
+function MealRow({ meal, onChange, onRemove }) {
+  const inputBase =
+    'rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 ' +
+    'focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-colors';
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* Meal type */}
+      <select
+        value={meal.name}
+        onChange={e => onChange({ ...meal, name: e.target.value })}
+        className={`${inputBase} flex-shrink-0 w-32`}
+      >
+        {MEAL_TYPES.map(t => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+
+      {/* Time */}
+      <input
+        type="time"
+        value={meal.time}
+        onChange={e => onChange({ ...meal, time: e.target.value })}
+        className={`${inputBase} flex-shrink-0`}
+      />
+
+      {/* Description */}
+      <input
+        type="text"
+        value={meal.description ?? ''}
+        onChange={e => onChange({ ...meal, description: e.target.value })}
+        placeholder="e.g. 3 Eggs, 1 Avocado, 50g Oats"
+        className={`${inputBase} flex-1 min-w-0 placeholder:text-zinc-300`}
+      />
+
+      {/* Remove */}
+      <button
+        type="button"
+        onClick={onRemove}
+        className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition flex-shrink-0"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // NutritionBuilder (inline form)
 // ---------------------------------------------------------------------------
 
 function NutritionBuilder({ initialPlan, onSave, onCancel }) {
-  const [form, setForm] = useState({ ...BLANK_PLAN, ...initialPlan });
+  const [form, setForm] = useState({
+    ...BLANK_PLAN,
+    ...initialPlan,
+    meals: initialPlan?.meals ?? [],
+  });
 
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }));
+  }
+
+  function addMeal() {
+    setForm(prev => ({
+      ...prev,
+      meals: [
+        ...prev.meals,
+        { id: `meal-${Date.now()}`, name: MEAL_TYPES[0], time: '', description: '' },
+      ],
+    }));
+  }
+
+  function updateMeal(id, updated) {
+    setForm(prev => ({
+      ...prev,
+      meals: prev.meals.map(m => m.id === id ? updated : m),
+    }));
+  }
+
+  function removeMeal(id) {
+    setForm(prev => ({ ...prev, meals: prev.meals.filter(m => m.id !== id) }));
   }
 
   const inputCls =
@@ -435,7 +581,6 @@ function NutritionBuilder({ initialPlan, onSave, onCancel }) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm">
 
-      {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100">
         <button
           onClick={onCancel}
@@ -447,11 +592,11 @@ function NutritionBuilder({ initialPlan, onSave, onCancel }) {
           <h2 className="text-sm font-bold text-zinc-800">
             {initialPlan?.nutrition_plan_id ? 'Edit Nutrition Plan' : 'New Nutrition Plan'}
           </h2>
-          <p className="text-xs text-zinc-400">Fill in the macro targets and guidelines.</p>
+          <p className="text-xs text-zinc-400">Set macro targets and schedule meals.</p>
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-5">
 
         {/* Icon picker */}
         <IconPicker value={form.iconType} onChange={v => updateField('iconType', v)} />
@@ -500,16 +645,47 @@ function NutritionBuilder({ initialPlan, onSave, onCancel }) {
           ))}
         </div>
 
-        {/* Guidelines textarea */}
+        {/* Meal schedule */}
         <div>
-          <label className={labelCls}>Meal Guidelines</label>
-          <textarea
-            rows={5}
-            className={`${inputCls} resize-none`}
-            value={form.guidelines}
-            onChange={e => updateField('guidelines', e.target.value)}
-            placeholder="e.g. Eat 4–5 meals/day, prioritise protein at every meal, save carbs around training..."
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls + ' mb-0'}>Meal Schedule</label>
+            <button
+              type="button"
+              onClick={addMeal}
+              className="inline-flex items-center gap-1 text-xs font-semibold
+                         text-brand-600 hover:text-brand-700 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Meal
+            </button>
+          </div>
+
+          {form.meals.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-zinc-200 px-4 py-6 text-center">
+              <Clock className="w-5 h-5 text-zinc-300 mx-auto mb-1" />
+              <p className="text-xs text-zinc-400">
+                No meals added yet.{' '}
+                <button
+                  type="button"
+                  onClick={addMeal}
+                  className="text-brand-600 hover:underline font-semibold"
+                >
+                  Add one
+                </button>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {form.meals.map(meal => (
+                <MealRow
+                  key={meal.id}
+                  meal={meal}
+                  onChange={updated => updateMeal(meal.id, updated)}
+                  onRemove={() => removeMeal(meal.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Save / Cancel */}
@@ -542,18 +718,14 @@ export default function NutritionPlans() {
   const [plans,      setPlans]      = useState(loadNutritionPlans);
   const [clients,    setClients]    = useState(loadClients);
   const [mode,       setMode]       = useState('library'); // 'library' | 'builder'
-  const [editTarget, setEditTarget] = useState(null);      // null = new, plan obj = editing
+  const [editTarget, setEditTarget] = useState(null);
   const [assignPlan, setAssignPlan] = useState(null);
   const [sharePlan,  setSharePlan]  = useState(null);
-
-  // ── Persist helper ───────────────────────────────────────────────────────
 
   function save(next) {
     setPlans(next);
     persistNutritionPlans(next);
   }
-
-  // ── Builder handlers ─────────────────────────────────────────────────────
 
   function handleBuilderSave(formData) {
     if (editTarget) {
@@ -585,10 +757,7 @@ export default function NutritionPlans() {
     save([...plans, dup]);
   }
 
-  // ── Protected delete (referential integrity) ─────────────────────────────
-
   function handleDelete(planId) {
-    // Strict referential-integrity check against rpm_clients in localStorage
     let isAssigned = false;
     try {
       const raw        = localStorage.getItem(LS_CLIENTS_KEY);
@@ -597,7 +766,6 @@ export default function NutritionPlans() {
         isAssigned = allClients.some(c => c.assigned_nutrition_id === planId);
       }
     } catch {
-      // If localStorage read throws, fall back to in-memory clients state
       isAssigned = clients.some(c => c.assigned_nutrition_id === planId);
     }
     if (isAssigned) {
@@ -607,10 +775,7 @@ export default function NutritionPlans() {
     save(plans.filter(p => p.nutrition_plan_id !== planId));
   }
 
-  // ── Assign handlers ──────────────────────────────────────────────────────
-
   function handleSaveAssignment(nutrition_plan_id, clientIds) {
-    // Update plans: new plan gets these clients; remove client from other plans
     const nextPlans = plans.map(p => {
       if (p.nutrition_plan_id === nutrition_plan_id) {
         return { ...p, assigned_to: clientIds };
@@ -619,7 +784,6 @@ export default function NutritionPlans() {
     });
     save(nextPlans);
 
-    // Update clients' assigned_nutrition_id
     const nextClients = clients.map(c => ({
       ...c,
       assigned_nutrition_id: clientIds.includes(c.client_id)
@@ -632,8 +796,6 @@ export default function NutritionPlans() {
     setAssignPlan(null);
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
-
   return (
     <div className="max-w-screen-xl mx-auto px-6 py-5 space-y-4">
 
@@ -645,7 +807,6 @@ export default function NutritionPlans() {
         />
       ) : (
         <>
-          {/* Page header */}
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">Nutrition Plans</h1>
@@ -663,7 +824,6 @@ export default function NutritionPlans() {
             </button>
           </div>
 
-          {/* Empty state */}
           {plans.length === 0 ? (
             <div className="bg-white rounded-2xl border border-zinc-200 py-20 text-center">
               <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center mx-auto mb-4">
@@ -699,7 +859,6 @@ export default function NutritionPlans() {
         </>
       )}
 
-      {/* Modals */}
       {assignPlan && (
         <AssignModal
           plan={assignPlan}
@@ -711,6 +870,7 @@ export default function NutritionPlans() {
       {sharePlan && (
         <ShareModal
           plan={sharePlan}
+          allClients={clients}
           onClose={() => setSharePlan(null)}
         />
       )}
