@@ -41,7 +41,7 @@ const SETTINGS_ITEM = { labelKey: 'nav.settings', route: '/settings', icon: Sett
 
 function loadTrainerProfile() {
   try {
-    const raw = localStorage.getItem('rpm_trainer_settings');
+    const raw = localStorage.getItem('progrx_trainer_settings');
     if (raw) {
       const data = JSON.parse(raw);
       return { fullName: data.name ?? 'Vikram Sood', email: data.email ?? 'vikram@progrx.in' };

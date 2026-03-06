@@ -26,8 +26,8 @@ import { dummyPlans, dummyClients, dummyTrainer } from '../data/dummyData.js';
 // Constants
 // ---------------------------------------------------------------------------
 
-const LS_PLANS_KEY   = 'rpm_plans';
-const LS_CLIENTS_KEY = 'rpm_clients';
+const LS_PLANS_KEY   = 'progrx_plans';
+const LS_CLIENTS_KEY = 'progrx_clients';
 
 // ---------------------------------------------------------------------------
 // localStorage helpers
@@ -830,14 +830,14 @@ export default function Plans() {
   }
 
   function handleSaveAssignment(planId, selectedIds) {
-    // 1. Update the plan's assigned_to list and persist rpm_plans
+    // 1. Update the plan's assigned_to list and persist progrx_plans
     setPlans(prev => {
       const next = prev.map(p => p.plan_id === planId ? { ...p, assigned_to: selectedIds } : p);
       persistPlans(next);
       return next;
     });
 
-    // 2. Mirror the assignment onto each client in rpm_clients so ClientProfile stays in sync.
+    // 2. Mirror the assignment onto each client in progrx_clients so ClientProfile stays in sync.
     //    Only assigned_plan_id is touched — all other client fields are preserved via spread.
     try {
       const raw     = localStorage.getItem(LS_CLIENTS_KEY);

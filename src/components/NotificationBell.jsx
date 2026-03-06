@@ -22,7 +22,7 @@ import { dummyNotifications } from '../data/dummyData.js';
 // localStorage helpers (duplicated from Notifications.jsx to keep this self-contained)
 // ---------------------------------------------------------------------------
 
-const LS_KEY = 'rpm_notifications';
+const LS_KEY = 'progrx_notifications';
 
 function loadNotifications() {
   try {

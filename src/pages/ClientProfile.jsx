@@ -1154,7 +1154,7 @@ function AssignedPlanCard({ client }) {
 
   const pickerPlans = useMemo(() => {
     try {
-      const raw = localStorage.getItem('rpm_plans');
+      const raw = localStorage.getItem('progrx_plans');
       return raw ? JSON.parse(raw) : dummyPlans;
     } catch {
       return dummyPlans;
@@ -1165,12 +1165,12 @@ function AssignedPlanCard({ client }) {
 
   function persistPlan(id) {
     try {
-      const raw  = localStorage.getItem('rpm_clients');
+      const raw  = localStorage.getItem('progrx_clients');
       const list = raw ? JSON.parse(raw) : [];
       const idx  = list.findIndex(c => c.client_id === client.client_id);
       if (idx !== -1) {
         list[idx] = { ...list[idx], assigned_plan_id: id };
-        localStorage.setItem('rpm_clients', JSON.stringify(list));
+        localStorage.setItem('progrx_clients', JSON.stringify(list));
       }
     } catch { /* silent */ }
   }
@@ -1280,7 +1280,7 @@ function AssignedNutritionCard({ client }) {
 
   const nutritionPlans = useMemo(() => {
     try {
-      const raw = localStorage.getItem('rpm_nutrition_plans');
+      const raw = localStorage.getItem('progrx_nutrition_plans');
       return raw ? JSON.parse(raw) : dummyNutritionPlans;
     } catch {
       return dummyNutritionPlans;
@@ -1320,15 +1320,15 @@ function AssignedNutritionCard({ client }) {
   function persistAssignment(nutritionPlanId) {
     try {
       // Update clients
-      const rawClients = localStorage.getItem('rpm_clients');
+      const rawClients = localStorage.getItem('progrx_clients');
       const clientList = rawClients ? JSON.parse(rawClients) : [];
       const idx        = clientList.findIndex(c => c.client_id === client.client_id);
       if (idx !== -1) {
         clientList[idx] = { ...clientList[idx], assigned_nutrition_id: nutritionPlanId };
-        localStorage.setItem('rpm_clients', JSON.stringify(clientList));
+        localStorage.setItem('progrx_clients', JSON.stringify(clientList));
       }
       // Update plans
-      const rawPlans = localStorage.getItem('rpm_nutrition_plans');
+      const rawPlans = localStorage.getItem('progrx_nutrition_plans');
       const planList = rawPlans ? JSON.parse(rawPlans) : dummyNutritionPlans;
       const updated  = planList.map(p => {
         if (p.nutrition_plan_id === nutritionPlanId) {
@@ -1338,7 +1338,7 @@ function AssignedNutritionCard({ client }) {
         }
         return { ...p, assigned_to: p.assigned_to.filter(id => id !== client.client_id) };
       });
-      localStorage.setItem('rpm_nutrition_plans', JSON.stringify(updated));
+      localStorage.setItem('progrx_nutrition_plans', JSON.stringify(updated));
     } catch { /* silent */ }
   }
 
@@ -1473,12 +1473,12 @@ function TrainerNotesSection({ initialNotes, clientId }) {
   function handleSave() {
     setSaving(true);
     try {
-      const raw  = localStorage.getItem('rpm_clients');
+      const raw  = localStorage.getItem('progrx_clients');
       const list = raw ? JSON.parse(raw) : [];
       const idx  = list.findIndex(c => c.client_id === clientId);
       if (idx !== -1) {
         list[idx] = { ...list[idx], notes };
-        localStorage.setItem('rpm_clients', JSON.stringify(list));
+        localStorage.setItem('progrx_clients', JSON.stringify(list));
       }
     } catch { /* no backend in V1 — silent */ }
     setTimeout(() => { setSaving(false); setSaved(true); }, 300);
@@ -1599,7 +1599,7 @@ export default function ClientProfile() {
 
   const baseClient = useMemo(() => {
     try {
-      const saved = localStorage.getItem('rpm_clients');
+      const saved = localStorage.getItem('progrx_clients');
       const list  = saved ? JSON.parse(saved) : dummyClients;
       return list.find(c => c.client_id === id);
     } catch {
@@ -1628,10 +1628,10 @@ export default function ClientProfile() {
   function handleDelete() {
     if (!window.confirm('Are you sure you want to delete this client? This cannot be undone.')) return;
     try {
-      const saved = localStorage.getItem('rpm_clients');
+      const saved = localStorage.getItem('progrx_clients');
       const list  = saved ? JSON.parse(saved) : dummyClients;
       const updated = list.filter(c => c.client_id !== id);
-      localStorage.setItem('rpm_clients', JSON.stringify(updated));
+      localStorage.setItem('progrx_clients', JSON.stringify(updated));
     } catch {
       // If localStorage fails, still navigate away
     }

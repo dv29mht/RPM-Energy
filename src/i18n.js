@@ -25,9 +25,9 @@ i18n
       escapeValue: false, // React already escapes values
     },
     detection: {
-      // Persist the user's choice in localStorage under key 'rpm_lang'
+      // Persist the user's choice in localStorage under key 'progrx_lang'
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'rpm_lang',
+      lookupLocalStorage: 'progrx_lang',
       caches: ['localStorage'],
     },
   });

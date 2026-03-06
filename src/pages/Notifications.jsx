@@ -4,7 +4,7 @@
  * Surfaces incoming client WhatsApp updates: meal photos, weight check-ins,
  * workout logs, and progress notes.
  *
- * Persistence: rpm_notifications in localStorage.
+ * Persistence: progrx_notifications in localStorage.
  * Badge sync:  dispatches 'notificationsUpdated' after every read-state change
  *              so Layout.jsx can refresh the sidebar badge count in real time.
  */
@@ -23,8 +23,8 @@ import { dummyNotifications, dummyClients } from '../data/dummyData.js';
 // Constants
 // ---------------------------------------------------------------------------
 
-const LS_KEY         = 'rpm_notifications';
-const LS_CLIENTS_KEY = 'rpm_clients';
+const LS_KEY         = 'progrx_notifications';
+const LS_CLIENTS_KEY = 'progrx_clients';
 
 /** Visual config per notification type (labels resolved via t() at render time) */
 const TYPE_CFG = {

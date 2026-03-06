@@ -7,7 +7,7 @@
  *  2. Coaching Mode    — Online Only | In-Person | Hybrid (selectable cards)
  *  3. Language         — English / Hindi toggle
  *
- * Persistence: rpm_trainer_settings in localStorage.
+ * Persistence: progrx_trainer_settings in localStorage.
  * Save button lives in the page header — always visible, no scroll required.
  */
 
@@ -21,7 +21,7 @@ import { dummyTrainer } from '../data/dummyData.js';
 // Constants
 // ---------------------------------------------------------------------------
 
-const LS_KEY = 'rpm_trainer_settings';
+const LS_KEY = 'progrx_trainer_settings';
 
 const COACHING_MODES = [
   { value: 'online',    Icon: Wifi    },

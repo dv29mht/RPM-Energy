@@ -37,7 +37,7 @@ import { getThisWeekStats, getEngagementChartData,
 
 const TODAY = '2026-02-24';
 
-const LS_CLIENTS_KEY = 'rpm_clients';
+const LS_CLIENTS_KEY = 'progrx_clients';
 
 // Categorical palette — distinct colors for readable data visualization
 const CLIENT_COLOURS = {

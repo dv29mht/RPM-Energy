@@ -10,7 +10,7 @@
  *
  * Also supports: Edit, Duplicate, Delete (with referential integrity guard).
  *
- * Persistence: rpm_nutrition_plans in localStorage.
+ * Persistence: progrx_nutrition_plans in localStorage.
  * Assignment:  updates both plan.assigned_to[] and client.assigned_nutrition_id.
  */
 
@@ -59,8 +59,8 @@ function fmt12h(timeStr) {
 // Constants
 // ---------------------------------------------------------------------------
 
-const LS_NUTRITION_KEY = 'rpm_nutrition_plans';
-const LS_CLIENTS_KEY   = 'rpm_clients';
+const LS_NUTRITION_KEY = 'progrx_nutrition_plans';
+const LS_CLIENTS_KEY   = 'progrx_clients';
 
 const BLANK_PLAN = {
   name:        '',

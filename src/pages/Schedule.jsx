@@ -9,7 +9,7 @@
  *  E3 — Log Session Modal   : status picker (Completed/No-Show/Cancelled) + notes
  *       Session Detail View : click any session card → details + log + profile link
  *
- * Persistence: rpm_sessions + rpm_clients keys in localStorage
+ * Persistence: progrx_sessions + progrx_clients keys in localStorage
  * Filter:      per-client dropdown in page header
  */
 
@@ -37,8 +37,8 @@ const REAL_TODAY_STR = (() => {
   return new Date(d - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 })();
 
-const LS_CLIENTS_KEY  = 'rpm_clients';
-const LS_SESSIONS_KEY = 'rpm_sessions';
+const LS_CLIENTS_KEY  = 'progrx_clients';
+const LS_SESSIONS_KEY = 'progrx_sessions';
 
 /** Tier-based hex colours — single source of truth for every color dot/stripe in the app. */
 const TIER_COLORS = {

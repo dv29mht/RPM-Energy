@@ -57,8 +57,8 @@ function fmtDate(isoStr) {
 // LocalStorage helpers
 // ---------------------------------------------------------------------------
 
-const LS_KEY           = 'rpm_clients';
-const LS_NUTRITION_KEY = 'rpm_nutrition_plans';
+const LS_KEY           = 'progrx_clients';
+const LS_NUTRITION_KEY = 'progrx_nutrition_plans';
 
 function loadClients() {
   try {
